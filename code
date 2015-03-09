@@ -1,0 +1,92 @@
+# Wine-Quality-Classifier
+R code for wine quality classifier using caret and k-nearest neighbors
+Replication of the example in Michael Clark's "An Introduction to Machine Learning with Applications in R" 
+http://www3.nd.edu/~mclark19/learn/ML.pdf
+Produced for Legal Analytics course at MSU College of Law
+
+> wine = read.csv("http://www.nd.edu/~mclark19/learn/data/goodwine.csv")
+
+## correlation matrix
+library(corrplot)
+corrplot(cor(wine[, -c(13, 15)]), method = "number", tl.cex = 0.5)
+
+## wine classifier training
+library(caret)
+set.seed(1234)
+trainIndices = createDataPartition(wine$good, p = 0.8, list = F)
+wanted = !colnames(wine) %in% c("free.sulfur.dioxide", "density", "quality", "color", "white")
+wine_train = wine[trainIndices, wanted] 
+wine_test = wine[-trainIndices, wanted]
+
+## wine classifier training set predictors plot
+wine_trainplot = predict(preProcess(wine_train[,-10], method="range"), wine_train[,-10])
+featurePlot(wine_trainplot, wine_train$good, "box")
+
+
+## k-nearest neighbors
+set.seed(1234)
+cv_opts = trainControl(method="cv", number=10)
+knn_opts = data.frame(.k=c(seq(3, 11, 2), 25, 51, 101))
+results_knn = train(good~., data=wine_train, method="knn",
++     preProcess="range", trControl=cv_opts,
++     tuneGrid = knn_opts)
+> results_knn
+
+## k-Nearest Neighbors 
+##
+## 5199 samples
+##   9 predictor
+##   2 classes: 'Bad', 'Good' 
+##
+## Pre-processing: re-scaling to [0, 1] 
+## Resampling: Cross-Validated (10 fold) 
+##
+## Summary of sample sizes: 4679, 4679, 4680, 4679, 4679, 4679, ... 
+##
+## Resampling results across tuning parameters:
+##
+##  k    Accuracy   Kappa      Accuracy SD  Kappa SD  
+##    3  0.7522575  0.4582951  0.01981347   0.04483384
+##    5  0.7464860  0.4417042  0.01162338   0.02741370
+##    7  0.7499539  0.4479659  0.01860710   0.04237614
+##    9  0.7474539  0.4409800  0.01518399   0.03534972
+##   11  0.7472579  0.4420230  0.01697151   0.03692068
+##   25  0.7486070  0.4417533  0.01788971   0.04152827
+##   51  0.7437941  0.4280833  0.01778802   0.04072447
+##  101  0.7418703  0.4184593  0.01825864   0.04230212
+##
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was k = 3. 
+
+## k-nearest neighbors on wine quality classifier test set
+> preds_knn = predict(results_knn, wine_test[,-10])
+> confusionMatrix(preds_knn, wine_test[,10], positive='Good')
+
+## Confusion Matrix and Statistics
+##
+##          Reference
+## Prediction Bad Good
+##      Bad  281  164
+##      Good 195  658
+##                                          
+##               Accuracy : 0.7234          
+##                 95% CI : (0.6982, 0.7476)
+##    No Information Rate : 0.6333          
+##    P-Value [Acc > NIR] : 3.708e-12       
+##                                          
+##                  Kappa : 0.3963          
+## Mcnemar's Test P-Value : 0.1133          
+##                                          
+##            Sensitivity : 0.8005          
+##            Specificity : 0.5903          
+##         Pos Pred Value : 0.7714          
+##         Neg Pred Value : 0.6315          
+##             Prevalence : 0.6333          
+##         Detection Rate : 0.5069          
+##   Detection Prevalence : 0.6572          
+##      Balanced Accuracy : 0.6954
+##
+##       'Positive' Class : Good
+
+## dot plot of variable importance of the k-nearest neighbors results
+> dotPlot(varImp(results_knn))
