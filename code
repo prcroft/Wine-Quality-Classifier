@@ -4,7 +4,7 @@ Replication of the example in Michael Clark's "An Introduction to Machine Learni
 http://www3.nd.edu/~mclark19/learn/ML.pdf
 Produced for Legal Analytics course at MSU College of Law
 
-> wine = read.csv("http://www.nd.edu/~mclark19/learn/data/goodwine.csv")
+wine = read.csv("http://www.nd.edu/~mclark19/learn/data/goodwine.csv")
 
 ## correlation matrix
 library(corrplot)
@@ -28,9 +28,9 @@ set.seed(1234)
 cv_opts = trainControl(method="cv", number=10)
 knn_opts = data.frame(.k=c(seq(3, 11, 2), 25, 51, 101))
 results_knn = train(good~., data=wine_train, method="knn",
-+     preProcess="range", trControl=cv_opts,
-+     tuneGrid = knn_opts)
-> results_knn
+     preProcess="range", trControl=cv_opts,
+     tuneGrid = knn_opts)
+results_knn
 
 ## k-Nearest Neighbors 
 ##
@@ -59,8 +59,8 @@ results_knn = train(good~., data=wine_train, method="knn",
 ## The final value used for the model was k = 3. 
 
 ## k-nearest neighbors on wine quality classifier test set
-> preds_knn = predict(results_knn, wine_test[,-10])
-> confusionMatrix(preds_knn, wine_test[,10], positive='Good')
+preds_knn = predict(results_knn, wine_test[,-10])
+confusionMatrix(preds_knn, wine_test[,10], positive='Good')
 
 ## Confusion Matrix and Statistics
 ##
@@ -89,4 +89,4 @@ results_knn = train(good~., data=wine_train, method="knn",
 ##       'Positive' Class : Good
 
 ## dot plot of variable importance of the k-nearest neighbors results
-> dotPlot(varImp(results_knn))
+dotPlot(varImp(results_knn))
